@@ -6,3 +6,4 @@ external/
 *.zip
 __pycache__
 data/
+CVPR21_traced/

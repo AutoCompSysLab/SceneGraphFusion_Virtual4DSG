@@ -371,7 +371,8 @@ void GraphPredictor::UpdateNodeFeature(const std::map<int,NodePtr> &vNodes) {
             Eigen::Vector3f dim = (bbox_max-bbox_min);
             float volume = 1;
             for (size_t d = 0; d < 3; ++d) volume *= dim[d];
-            float length = *std::max_element(dim.begin(), dim.end());
+            // float length = *std::max_element(dim.begin(), dim.end());
+            float length = dim.maxCoeff();
 
             for (size_t d = 0; d < 3; ++d) {
                 descriptor_full.Row<float>(i)[d] = centroid[d];
@@ -457,7 +458,8 @@ void GraphPredictor::UpdateEdgeFeature(const std::map<int,NodePtr> &vNodes){
             Eigen::Vector3f dim = (bbox_max - bbox_min);
             float volume = 1;
             for (size_t d = 0; d < 3; ++d) volume *= dim[d];
-            float length = *std::max_element(dim.begin(), dim.end());
+            // float length = *std::max_element(dim.begin(), dim.end());
+            float length = dim.maxCoeff();
 
             for (size_t d = 0; d < 3; ++d) {
                 descriptor_full.Row<float>(i)[d] = centroid[d];

@@ -284,7 +284,8 @@ void Node::UpdateSelectedNode(const size_t time, const size_t filter_size, const
         float volume = 1;
         auto dim = (mBBox_max-mBBox_min)*1e-3;
         for (size_t d = 0; d < 3; ++d) volume *= dim[d];
-        float length = *std::max_element(dim.begin(), dim.end());
+        // float length = *std::max_element(dim.begin(), dim.end());
+        float length = dim.maxCoeff();
         size_t valid_surfels = 0;
         for(const auto& surfel:surfels)
             if(surfel.second->is_valid && surfel.second->is_stable) valid_surfels++;

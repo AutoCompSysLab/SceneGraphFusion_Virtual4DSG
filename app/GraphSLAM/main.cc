@@ -123,7 +123,7 @@ private:
 class Renderer{
 public:
 
-    Renderer(int width, int height, const std::string &path){
+    Renderer(int width, int height, const std::string &path, bool align){
         throw std::runtime_error("did not compile with assimp");
     }
 
