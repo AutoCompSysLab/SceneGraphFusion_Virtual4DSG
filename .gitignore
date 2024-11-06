@@ -7,3 +7,4 @@ external/
 __pycache__
 data/
 CVPR21_traced/
+.vscode/

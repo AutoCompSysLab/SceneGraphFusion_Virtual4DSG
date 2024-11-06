@@ -22,5 +22,8 @@ ExternalProject_Add(opencv_external
         -DBUILD_TESTS:BOOL=OFF
         -DCMAKE_BUILD_TYPE:STRING=Release
         -DWITH_FFMPEG:BOOL=OFF
+        -DWITH_OPENEXR:BOOL=ON 
+        -DOPENEXR_INCLUDE_DIR:PATH=/usr/include/OpenEXR  
+        -DOPENEXR_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libIlmImf.so
         -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/
 )

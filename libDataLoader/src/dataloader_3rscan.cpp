@@ -102,34 +102,63 @@ bool DatasetLoader_3RScan::IsV2() const {
 }
 
 bool DatasetLoader_3RScan::Retrieve() {
-    std::string depthFilename = GetFileName(m_dataset->folder,
-                                            m_dataset->folder_depth,
-                                            m_dataset->prefix_depth,
-                                            m_dataset->suffix_depth,
-                                            m_dataset->number_length);
-    std::string colorFilename = GetFileName(m_dataset->folder,
-                                            m_dataset->folder_rgb,
-                                            m_dataset->prefix_rgb,
-                                            m_dataset->suffix_rgb,
-                                            m_dataset->number_length);
-    pose_file_name_ = GetFileName(m_dataset->folder,
-                                  m_dataset->folder_pose,
-                                  m_dataset->prefix_pose,
-                                  m_dataset->suffix_pose,
-                                  m_dataset->number_length);
-    bool isExist = isFileExist(depthFilename);
+    int max_attempts = 3;
+    int attempt = 0;
+    bool isExist = false;
+    std::string depthFilename, colorFilename;
+
+    while (attempt < max_attempts) {
+        depthFilename = GetFileName(m_dataset->folder,
+                                                m_dataset->folder_depth,
+                                                m_dataset->prefix_depth,
+                                                m_dataset->suffix_depth,
+                                                m_dataset->number_length);
+        colorFilename = GetFileName(m_dataset->folder,
+                                                m_dataset->folder_rgb,
+                                                m_dataset->prefix_rgb,
+                                                m_dataset->suffix_rgb,
+                                                m_dataset->number_length);
+        pose_file_name_ = GetFileName(m_dataset->folder,
+                                    m_dataset->folder_pose,
+                                    m_dataset->prefix_pose,
+                                    m_dataset->suffix_pose,
+                                    m_dataset->number_length);
+        isExist = isFileExist(depthFilename);
+        if (isExist) {
+            break; // Exit loop if file is found
+        }
+        attempt++;
+        frame_index += m_dataset->frame_index_counter; // Move to the next file
+        SCLOG(VERBOSE) << "Attempt " << attempt << ": Cannot find path:\n" << depthFilename << "\n" << colorFilename;
+    }
+
     if (!isExist) {
         frame_index = 0;
-        SCLOG(VERBOSE) << "Cannot find path:\n" << depthFilename << "\n" << colorFilename;
+        SCLOG(VERBOSE) << "Failed to retrieve data after " << max_attempts << " attempts.";
 
         return false;
     }
-    m_d = cv::imread(depthFilename, -1);
+
+    // m_d = cv::imread(depthFilename, -1);
+    // // mask depth
+    // for(size_t c=0;c<(size_t)m_d.cols;++c){
+    //     for(size_t r=0;r<(size_t)m_d.rows;++r){
+    //         if(m_d.at<unsigned short>(r,c)>=m_dataset->max_depth)
+    //             m_d.at<unsigned short>(r,c) = 0;
+    //     }
+    // }
+    m_d = cv::imread(depthFilename, cv::IMREAD_ANYDEPTH);
+    int type = m_d.type();
     // mask depth
     for(size_t c=0;c<(size_t)m_d.cols;++c){
         for(size_t r=0;r<(size_t)m_d.rows;++r){
-            if(m_d.at<unsigned short>(r,c)>=m_dataset->max_depth)
-                m_d.at<unsigned short>(r,c) = 0;
+            if (type == CV_32F) {
+                if(m_d.at<float>(r,c)>=m_dataset->max_depth)
+                    m_d.at<float>(r,c) = 0;
+            } else {
+                if(m_d.at<unsigned short>(r,c)>=m_dataset->max_depth)
+                    m_d.at<unsigned short>(r,c) = 0;
+            }
         }
     }
 

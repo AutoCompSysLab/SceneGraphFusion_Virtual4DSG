@@ -1,6 +1,7 @@
 #pragma once
 #include "dataset3RScan.h"
 #include "datasetScanNet.h"
+#include "datasetVirtual4DSG.h"
 #include "dataloader_3rscan.h"
 #include "dataloader_scannet.h"
 
@@ -16,6 +17,9 @@ namespace PSLAM {
                 if(pth.find(".sens") != std::string::npos || pth.find("scene") != std::string::npos) {
                     inputeType = DATASET_SCANNET;
                     std::cerr << "ScanNet";
+                } else if(pth.find("4acaebcc") != std::string::npos) {
+                    inputeType = DATASET_VIRTUAL4DSG;
+                    std::cerr << "Virtual4DSG";
                 } else {
                     inputeType = DATASET_3RSCAN;
                     std::cerr << "3RScan";
@@ -33,6 +37,13 @@ namespace PSLAM {
                 case DATASET_SCANNET: {
                     auto database = std::make_shared<ScanNetDataset>(inputeType, pth);
                     output = new DatasetLoader_ScanNet(database);
+                    break;
+                }
+                case DATASET_VIRTUAL4DSG: {
+                    auto path = pth.back() == '/' ? pth : pth + "/";
+                    auto database = std::make_shared<Virtual4DSGDataset>(inputeType, path);
+                    output = new DatasetLoader_3RScan(database);
+                    
                     break;
                 }
                 case DATASET_DETECT:
