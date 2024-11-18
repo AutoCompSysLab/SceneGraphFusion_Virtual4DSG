@@ -8,6 +8,7 @@
 
 #include <utility>
 #include <dataLoader/dataset3RScan.h>
+#include <dataLoader/datasetVirtual4DSG.h>
 #include <ORUtils/PathTool.hpp>
 
 using namespace PSLAM;

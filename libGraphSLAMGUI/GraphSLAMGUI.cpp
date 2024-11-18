@@ -12,6 +12,7 @@ GraphSLAMGUI::GraphSLAMGUI(GraphSLAM *graphSlam, DatasetLoader_base *dataloader)
         : SC::GUI3D("Graph SLAM GUI", 1280, 800),
           mpGraphSLAM(graphSlam),
           mpDataLoader(dataloader)
+
 {
     glCam = std::make_unique<glUtil::Camera>(window_->width, window_->height, camPose, camUp, yaw, pitch);
     glCam->camera_control_ = std::make_unique<SC::ArcCameraContorl>();
@@ -475,21 +476,21 @@ bool GraphSLAMGUI::ProcessSLAM(){
     auto idx = mpDataLoader->GetFrameIndex();
     mRGB = mpDataLoader->GetRGBImage();
     mDepth = mpDataLoader->GetDepthImage();
-#ifdef COMPILE_WITH_ASSIMP
-    if(mMeshRender) {
-        Eigen::Matrix4f t_p = mpDataLoader->GetPose();
-        t_p.topRightCorner<3, 1>() /= 1000.f;
-        t_p.transposeInPlace();
-        auto view_pose = glUtil::GetViewMatrix(t_p);
-        auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
-                                               mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
-                                               mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
-                                               glCam->projection_control_->near,glCam->projection_control_->far);
-        cv::Mat t_rgb;
-        mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far);
-        mDepth = mMeshRender->GetDepth();
-    }
-#endif
+// #ifdef COMPILE_WITH_ASSIMP
+//     if(mMeshRender) {
+//         Eigen::Matrix4f t_p = mpDataLoader->GetPose();
+//         t_p.topRightCorner<3, 1>() /= 1000.f;
+//         t_p.transposeInPlace();
+//         auto view_pose = glUtil::GetViewMatrix(t_p);
+//         auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
+//                                                mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
+//                                                mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
+//                                                glCam->projection_control_->near,glCam->projection_control_->far);
+//         cv::Mat t_rgb;
+//         mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far);
+//         mDepth = mMeshRender->GetDepth();
+//     }
+// #endif
     const Eigen::Matrix4f pose_inv = pose.inverse();
     fps_->start();
     mpGraphSLAM->ProcessFrame(idx,mRGB,mDepth,&pose_inv);

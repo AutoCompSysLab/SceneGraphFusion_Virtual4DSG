@@ -205,24 +205,10 @@ int main(int argc, char** argv) {
 #ifdef COMPILE_WITH_PSLAM_GUI
     SCLOG(INFO) << "start gui...";
     PSLAM::GraphSLAMGUI gui(&graphSlam, dataset_loader_.get());
-    if(params.use_render) {
-        gui.SetRender(dataset_loader_->GetCamParamDepth().width, dataset_loader_->GetCamParamDepth().height, path, true);
-    } else {
-        // gui.SetRender(dataset_loader_->GetDepthImage().cols, dataset_loader_->GetDepthImage().rows, path, true);
-        gui.SetRender(dataset_loader_->GetCamParamDepth().width, dataset_loader_->GetCamParamDepth().height, path, false);   // for virtual4dsg: align = false
-        // while (true) {
-        //     if (!dataset_loader_->Retrieve())break;
-        //     SCLOG(VERBOSE) << "process frame: " << dataset_loader_->GetFrameIndex();
-        //     const Eigen::Matrix4f pose = dataset_loader_->GetPose().inverse();
-        //     auto rgb = dataset_loader_->GetRGBImage();
-        //     auto d   = dataset_loader_->GetDepthImage();
-
-        //     CTICK("[ALL]0.all");
-        //     graphSlam.ProcessFrame(dataset_loader_->GetFrameIndex(), rgb, d, &pose);  
-        //     CTOCK("[ALL]0.all");
-        // }        
-    }
-    gui.run();
+    if(params.use_render) 
+        gui.SetRender(dataset_loader_->GetCamParamDepth().width,dataset_loader_->GetCamParamDepth().height,path, false); // align: true->false for Virtual4DSG
+        // gui.SetRender(dataset_loader_->GetCamParamDepth().width,dataset_loader_->GetCamParamDepth().height,path, true);
+    gui.run(params.use_render);
 #else
     SCLOG(INFO) << "start processing frames...";
     while (true) {
