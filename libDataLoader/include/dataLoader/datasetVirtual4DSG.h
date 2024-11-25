@@ -13,6 +13,7 @@ namespace PSLAM {
         Virtual4DSGDataset(INPUTE_TYPE type, const std::string &path)  {
             datasetType = type;
             rotate_pose_img = false;
+            convert_coordinate = true;
             folder = path;
             frame_index_counter = 1;
             number_length = 1;

@@ -9,7 +9,8 @@
 using namespace PSLAM;
 
 GraphSLAMGUI::GraphSLAMGUI(GraphSLAM *graphSlam, DatasetLoader_base *dataloader)
-        : SC::GUI3D("Graph SLAM GUI", 1280, 800),
+        // : SC::GUI3D("Graph SLAM GUI", 1280, 800),
+        : SC::GUI3D("Graph SLAM GUI", 2560, 1440),
           mpGraphSLAM(graphSlam),
           mpDataLoader(dataloader)
 
@@ -49,7 +50,7 @@ GraphSLAMGUI::GraphSLAMGUI(GraphSLAM *graphSlam, DatasetLoader_base *dataloader)
 }
 
 GraphSLAMGUI::~GraphSLAMGUI() {
-    SCSLAM::EVALUATION::Logging::printResultToFile("./","times.txt");
+    SCSLAM::EVALUATION::Logging::printResultToFile("./bin","times.txt");
 }
 
 void GraphSLAMGUI::drawUI() {
@@ -296,7 +297,7 @@ void GraphSLAMGUI::MainUI(){
 
 
     /// Save
-    const std::string pth_out = "./"; //TODO: make this an input
+    const std::string pth_out = "./bin"; //TODO: make this an input
     if(ImGui::Checkbox("RecordImg",&bRecordImg)) ;
     if(ImGui::Button("Save image")) RecordImg();
     if(ImGui::Button("Save Map")) {
@@ -350,8 +351,8 @@ void GraphSLAMGUI::Process(){
             bNeedUpdate |= state;
             bNeedUpdateTexture = state;
             if(state) {
-                Eigen::Matrix4f pose = mpGraphSLAM->GetInSeg()->pose().inverse();
-                pose.topRightCorner<3,1>() /= 1000.f;
+                Eigen::Matrix4f pose = mpGraphSLAM->GetInSeg()->pose().inverse(); // world2camera -> camera2world
+                pose.topRightCorner<3,1>() /= 1000.f; // mm -> m
                 mTrajectoryDrawer.Add({pose.topRightCorner<3, 1>().x(), pose.topRightCorner<3, 1>().y(),
                                        pose.topRightCorner<3, 1>().z()});
             }
@@ -381,9 +382,8 @@ void GraphSLAMGUI::Process(){
         }
     }
 
-    const Eigen::Matrix4f eigen_proj = GLM2E<float,4,4>(glCam->projection_control_->projection_matrix());
+    const Eigen::Matrix4f eigen_proj = GLM2E<float,4,4>(glCam->projection_control_->projection_matrix()); 
     const Eigen::Matrix4f eigen_vm   = GLM2E<float,4,4>(glCam->camera_control_->GetViewMatrix());
-
 
 #ifdef APPLE
     windowWidth *=2;
@@ -424,10 +424,13 @@ void GraphSLAMGUI::Process(){
     }
 
     {
-        bool scannet = false;
+        // bool scannet = false;
+        bool virtual4dsg = true;
         const int size = 3;
-        const float sub_window_height = (windowHeight-(0*size+2)) / size;
-        const float sub_window_width = scannet ?
+        // const float sub_window_height = (windowHeight-(0*size+2)) / size;
+        const float sub_window_height = (windowHeight-(0*size+10)) / size;
+        // const float sub_window_width = scannet ?
+        const float sub_window_width = virtual4dsg ?
                                        sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().cols)/static_cast<float>(mpDataLoader->GetDepthImage().rows)) :
                                        sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().rows)/static_cast<float>(mpDataLoader->GetDepthImage().cols));
         int i=0;
@@ -444,11 +447,11 @@ void GraphSLAMGUI::Process(){
     bFaceCulling? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     if(bRenderSurfel) mSurfelDrawer.Draw(eigen_proj,eigen_vm);
-    Eigen::Matrix4f pose = mpGraphSLAM->GetInSeg()->pose().inverse();
+    Eigen::Matrix4f pose = mpGraphSLAM->GetInSeg()->pose().inverse();   // world2camera -> camera2world
     pose.topRightCorner<3,1>() /= 1000.f;
     if(bDrawCam) {
         mCameraDrawer.SetColor({0,1,1,1});// green
-        mCameraDrawer.Draw(pose, eigen_proj,eigen_vm);
+        mCameraDrawer.Draw(pose,eigen_proj,eigen_vm);
     }
 
     if(bDrawTraj)mTrajectoryDrawer.Draw(eigen_proj,eigen_vm);
@@ -472,28 +475,32 @@ bool GraphSLAMGUI::ProcessSLAM(){
     }
     if(!bProcess) return true;
     CTICK("[GUI][Process]ProcessSLAM");
-    const Eigen::Matrix4f pose = mpDataLoader->GetPose();
+    Eigen::Matrix4f pose = mpDataLoader->GetPose(); // mm, camera2world 
     auto idx = mpDataLoader->GetFrameIndex();
     mRGB = mpDataLoader->GetRGBImage();
-    mDepth = mpDataLoader->GetDepthImage();
+    mDepth = mpDataLoader->GetDepthImage(); // mm
+    std::cout << "z_flipped pose " << idx << ": \n" << pose << std::endl;
+
 // #ifdef COMPILE_WITH_ASSIMP
 //     if(mMeshRender) {
-//         Eigen::Matrix4f t_p = mpDataLoader->GetPose();
-//         t_p.topRightCorner<3, 1>() /= 1000.f;
-//         t_p.transposeInPlace();
-//         auto view_pose = glUtil::GetViewMatrix(t_p);
+//         Eigen::Matrix4f t_p = mpDataLoader->GetPose(); // camera2world
+//         t_p.topRightCorner<3, 1>() /= 1000.f; // mm ->m
+        // t_p.transposeInPlace(); // camera2world -> world2camera (?)
+        // auto view_pose = glUtil::GetViewMatrix(t_p); // camera2world -> world2camera (?)
 //         auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
 //                                                mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
 //                                                mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
 //                                                glCam->projection_control_->near,glCam->projection_control_->far);
 //         cv::Mat t_rgb;
-//         mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far);
-//         mDepth = mMeshRender->GetDepth();
+        // mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far); // 
+        // mDepth = mMeshRender->GetDepth(); //
+//         std::cout << "Mesh Renderer pose for frame " << idx << ": \n" << t_p << std::endl;
 //     }
 // #endif
-    const Eigen::Matrix4f pose_inv = pose.inverse();
+
+    const Eigen::Matrix4f pose_inv = pose.inverse(); //  camera2world -> world2camera
     fps_->start();
-    mpGraphSLAM->ProcessFrame(idx,mRGB,mDepth,&pose_inv);
+    mpGraphSLAM->ProcessFrame(idx,mRGB,mDepth,&pose_inv); // SLAM's input & output pose: world2camara
     fps_->stop();
     fps_->checkUpdate();
     CTOCK("[GUI][Process]ProcessSLAM");

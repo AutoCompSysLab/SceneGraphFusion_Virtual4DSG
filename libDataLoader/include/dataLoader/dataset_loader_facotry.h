@@ -4,6 +4,7 @@
 #include "datasetVirtual4DSG.h"
 #include "dataloader_3rscan.h"
 #include "dataloader_scannet.h"
+#include "dataloader_virtual4dsg.h"
 
 namespace PSLAM {
     struct  DataLoaderFactory {
@@ -17,7 +18,7 @@ namespace PSLAM {
                 if(pth.find(".sens") != std::string::npos || pth.find("scene") != std::string::npos) {
                     inputeType = DATASET_SCANNET;
                     std::cerr << "ScanNet";
-                } else if(pth.find("4acaebcc") != std::string::npos) {
+                } else if(pth.find("Virtual") != std::string::npos) {
                     inputeType = DATASET_VIRTUAL4DSG;
                     std::cerr << "Virtual4DSG";
                 } else {
@@ -42,7 +43,7 @@ namespace PSLAM {
                 case DATASET_VIRTUAL4DSG: {
                     auto path = pth.back() == '/' ? pth : pth + "/";
                     auto database = std::make_shared<Virtual4DSGDataset>(inputeType, path);
-                    output = new DatasetLoader_3RScan(database);
+                    output = new DatasetLoader_Virtual4DSG(database);
                     
                     break;
                 }

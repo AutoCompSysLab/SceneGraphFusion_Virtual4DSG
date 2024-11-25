@@ -23,7 +23,7 @@
 
 struct Params{
     std::string pth_in;
-    std::string pth_out = "./";
+    std::string pth_out = "./bin";
     std::string pth_model;
     std::string save_name = "inseg.ply";
     int min_pyr_level=2;

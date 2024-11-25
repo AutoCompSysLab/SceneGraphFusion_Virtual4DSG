@@ -250,10 +250,14 @@ namespace SC{
             // Make sure that when pitch is out of bounds, screen doesn't get flipped
             if (constrainPitch)
             {
-                if (Pitch > 89.0f)
-                    Pitch = 89.0f;
-                if (Pitch < -89.0f)
-                    Pitch = -89.0f;
+                // if (Pitch > 89.0f)
+                //     Pitch = 89.0f;
+                // if (Pitch < -89.0f)
+                //     Pitch = -89.0f;
+                if (Pitch > 89.9f)
+                    Pitch = 89.9f;
+                if (Pitch < -89.9f)
+                    Pitch = -89.9f;
             }
 
             // Update Front, Right and Up Vectors using the updated Euler angles
@@ -359,7 +363,8 @@ namespace SC{
             glm::vec3 offset = rotation() * glm::vec3(distance, 0.0f, 0.0f);
             glm::vec3 eye = Position + offset;
 
-            glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+            // glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 1.0f, 0.0f));
             return mat;
         }
 
@@ -412,7 +417,7 @@ namespace SC{
 
             distance = std::max(0.1, distance);
         }
-
+        
         glm::quat rotation() const { return glm::angleAxis<float>(theta, glm::vec3(0,0,1)) * glm::angleAxis<float>(phi, WorldUp); }
 
     private:
