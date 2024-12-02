@@ -22,13 +22,13 @@ namespace PSLAM {
         std::ifstream file(path);
         assert(file.is_open());
         if (file.is_open()) {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) // row-major
                 for (int j = 0; j < 4; j++)
                     file >> pose(i, j);
             pose.block<3, 1>(0, 3) *= 1000.0f;
             file.close();
         }
-//        std::cout << "pose\n"<< pose << "\n";
+    //    std::cout << "pose\n"<< pose << "\n";
     }
 }
 

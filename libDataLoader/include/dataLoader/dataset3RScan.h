@@ -11,6 +11,7 @@ namespace PSLAM {
     class Scan3RDataset : public DatasetDefinitionBase {
     public:
         Scan3RDataset(INPUTE_TYPE type, const std::string &path)  {
+            rotate_pose_img = true;
             datasetType = type;
             folder = path;
             frame_index_counter = 1;

@@ -7,7 +7,7 @@
 
 namespace PSLAM {
     enum MeshRenderType {
-        MeshRenderType_ScanNet, MeshRenderType_3RScan, MeshRenderType_Detect
+        MeshRenderType_ScanNet, MeshRenderType_3RScan, MeshRenderType_Virtual4DSG, MeshRenderType_Detect
     };
 }
 

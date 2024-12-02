@@ -363,8 +363,8 @@ namespace SC{
             glm::vec3 offset = rotation() * glm::vec3(distance, 0.0f, 0.0f);
             glm::vec3 eye = Position + offset;
 
-            // glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-            glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+            // glm::mat4 mat = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(Position[0], Position[1], Position[2]), glm::vec3(WorldUp[0], WorldUp[1], WorldUp[2]));
             return mat;
         }
 

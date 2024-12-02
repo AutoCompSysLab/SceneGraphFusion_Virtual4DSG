@@ -8,6 +8,7 @@
 #include "RendererType.h"
 #include "Renderer3RScan.h"
 #include "RendererScanNet.h"
+#include "RendererVirtual4DSG.h"
 namespace PSLAM {
 
     static MeshRendererInterface* MakeMeshRenderer(int width, int height, const std::string &folder, const std::string &scan_id,
@@ -24,6 +25,8 @@ namespace PSLAM {
                 meshRenderType = MeshRenderType_ScanNet;
             } else if (folder_lower.find("3rscan") != std::string ::npos) {
                 meshRenderType = MeshRenderType_3RScan;
+            } else if (folder_lower.find("virtual") != std::string ::npos) {
+                meshRenderType = MeshRenderType_Virtual4DSG;
             } else {
                 throw std::runtime_error("unable to detect type.");
             }
@@ -38,6 +41,10 @@ namespace PSLAM {
                 break;
             case MeshRenderType_3RScan:{
                 renderer = new MeshRenderer3RScan(width, height, folder, scan_id, align);
+            }
+                break;
+            case MeshRenderType_Virtual4DSG:{
+                renderer = new MeshRendererVirtual4DSG(width, height, folder, scan_id, align);
             }
                 break;
             case MeshRenderType_Detect:

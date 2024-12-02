@@ -51,17 +51,17 @@ namespace glUtil {
         return res;
     }
 
-    [[maybe_unused]] static Eigen::Matrix4f GetViewMatrix(const Eigen::Matrix4f &pose){
-        Eigen::Matrix4f camera_pose = pose.transpose();
+    [[maybe_unused]] static Eigen::Matrix4f GetViewMatrix(const Eigen::Matrix4f &pose){ // input pose: column-major
+        Eigen::Matrix4f camera_pose = pose.transpose(); // column-major -> row-major
         Eigen::Vector3f camera_direction;
         Eigen::Vector3f camera_right;
         Eigen::Vector3f camera_up;
         Eigen::Vector3f camera_eye;
         Eigen::Vector3f camera_center;
         Eigen::Matrix4f view_pose;
-        camera_direction = camera_pose.block<3, 3>(0, 0) * Eigen::Vector3f(0, 0, 1);
-        camera_right = camera_pose.block<3, 3>(0, 0) * Eigen::Vector3f(1, 0, 0);
-        camera_up = camera_right.cross(camera_direction);
+        camera_direction = camera_pose.block<3, 3>(0, 0) * Eigen::Vector3f(0, 0, 1); 
+        camera_right = camera_pose.block<3, 3>(0, 0) * Eigen::Vector3f(1, 0, 0); 
+        camera_up = camera_right.cross(camera_direction); 
         camera_eye = camera_pose.block<3, 1>(0, 3);
         camera_center = camera_eye + 1 * camera_direction;
         view_pose = lookAt(camera_eye, camera_center, camera_up);

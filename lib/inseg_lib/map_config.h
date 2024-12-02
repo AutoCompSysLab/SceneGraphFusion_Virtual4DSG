@@ -8,7 +8,8 @@ struct MapConfig {
     double near_depth_threshold = 10;
     
     // Far threshold for depth values in mm. All other values are dropped.
-    double far_depth_threshold = 10000;
+    // double far_depth_threshold = 10000;
+    double far_depth_threshold = 20000;
     
     // Number of bilateral filter iterations that should be applied
     // (0=disabled).
@@ -16,6 +17,7 @@ struct MapConfig {
     
     // Normalize depth data (for synthetic renderings).
     bool normalize_depth = false;
+    // bool normalize_depth = true;
 };
 }  // namespace inseg_lib
 

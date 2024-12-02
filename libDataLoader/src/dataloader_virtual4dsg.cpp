@@ -34,7 +34,8 @@ static bool LoadInfoIntrinsics(const std::string& filename,
     std::string line{""};
     std::ifstream file(filename);
     int width,height;
-    float fx,fy,cx,cy;
+    // float fx,fy,cx,cy;
+    double fx,fy,cx,cy;
     if (file.is_open()) {
         while (std::getline(file,line)) {
             if (line.rfind(search_tag_w, 0) == 0)
@@ -46,10 +47,14 @@ static bool LoadInfoIntrinsics(const std::string& filename,
             else if (line.rfind(search_tag, 0) == 0) {
                 const std::string model = line.substr(line.find("= ")+2, std::string::npos);
                 const auto parts = split(model, " ");
-                fx = std::stof(parts[0]);
-                fy = std::stof(parts[5]);
-                cx = std::stof(parts[2]);
-                cy = std::stof(parts[6]);
+                // fx = std::stof(parts[0]);
+                // fy = std::stof(parts[5]);
+                // cx = std::stof(parts[2]);
+                // cy = std::stof(parts[6]);
+                fx = std::stod(parts[0]);
+                fy = std::stod(parts[5]);
+                cx = std::stod(parts[2]);
+                cy = std::stod(parts[6]);
             }
         }
         file.close();
@@ -62,9 +67,9 @@ static bool LoadInfoIntrinsics(const std::string& filename,
 
 DatasetLoader_Virtual4DSG::DatasetLoader_Virtual4DSG(std::shared_ptr<DatasetDefinitionBase> dataset):
         DatasetLoader_base(std::move(dataset)) {
-    if(!LoadInfoIntrinsics(m_dataset->folder+"/_info.txt",true,m_cam_param_d))
+    if(!LoadInfoIntrinsics(m_dataset->folder+"_info.txt",true,m_cam_param_d))
         throw std::runtime_error("unable to open _info file");
-    if(!LoadInfoIntrinsics(m_dataset->folder+"/_info.txt",false,m_cam_param_rgb))
+    if(!LoadInfoIntrinsics(m_dataset->folder+"_info.txt",false,m_cam_param_rgb))
         throw std::runtime_error("unable to open _info file");
 }
 
@@ -125,11 +130,7 @@ bool DatasetLoader_Virtual4DSG::Retrieve() {
     }
 
     // m_d = cv::imread(depthFilename, -1);
-    m_d = cv::imread(depthFilename, cv::IMREAD_ANYDEPTH);
-    int type = m_d.type();
-    if(type == CV_32F) 
-        m_d = m_d * 1000.0f;
-    // mask depth
+    // // mask depth
     // for(size_t c=0;c<(size_t)m_d.cols;++c){
     //     for(size_t r=0;r<(size_t)m_d.rows;++r){
     //         if(m_d.at<unsigned short>(r,c)>=m_dataset->max_depth)
@@ -138,18 +139,14 @@ bool DatasetLoader_Virtual4DSG::Retrieve() {
     // }
     // m_d = cv::imread(depthFilename, cv::IMREAD_ANYDEPTH);
     // int type = m_d.type();
-
+    m_d = cv::imread(depthFilename, cv::IMREAD_ANYDEPTH);
+    m_d = m_d * 1000.0f; // m -> mm
     // mask depth
     for(size_t c=0;c<(size_t)m_d.cols;++c){
         for(size_t r=0;r<(size_t)m_d.rows;++r){
-            if (type == CV_32F) {
-                if(m_d.at<float>(r,c)>=m_dataset->max_depth)
-                    m_d.at<float>(r,c) = 0;
-            } else {
-                if(m_d.at<unsigned short>(r,c)>=m_dataset->max_depth)
-                    m_d.at<unsigned short>(r,c) = 0;
-            }
-        }
+            if(m_d.at<float>(r,c)>=m_dataset->max_depth)
+                m_d.at<float>(r,c) = 0;
+    }
     }
 
     if (isFileExist(colorFilename.c_str())) {
@@ -169,11 +166,26 @@ bool DatasetLoader_Virtual4DSG::Retrieve() {
     }
 
     if (m_dataset->convert_coordinate) {
-        Eigen::Matrix4f ConvertLHToRH = Eigen::Matrix4f::Identity();
-        ConvertLHToRH(1, 1) = -1;  // Y축 반전
-        ConvertLHToRH(2, 2) = -1;  // Z축 반전
-        m_pose = ConvertLHToRH * m_pose * ConvertLHToRH.inverse();
+        // Eigen::Matrix4f ConvertLHToRH = Eigen::Matrix4f::Identity();
+        // ConvertLHToRH(1, 1) = -1;  // Y축 반전
+        // ConvertLHToRH(2, 2) = -1;  // Z축 반전
+        Eigen::Matrix4f ConvertLHToRH;
+        // ConvertLHToRH << 1,  0,  0,  0, // Z-up 일 때
+        //                  0,  0,  1,  0,
+        //                  0,  1,  0,  0,
+        //                  0,  0,  0,  1;
+        ConvertLHToRH << 1,  0,  0,  0, // Y-up 일 때
+                         0,  1,  0,  0,
+                         0,  0, -1,  0,
+                         0,  0,  0,  1;
+        m_pose = ConvertLHToRH * m_pose * ConvertLHToRH.inverse(); // 행렬의 기하학적 성질을 올바르게 적용하기 위해 앞뒤로 곱함.
     }
+    // std::cout << "Converted pose\n"<< m_pose << "\n";
+
+    // cv::imshow("m_rgb", m_rgb);
+    // cv::imshow("m_d", m_d);
+    // cv::waitKey(0);
+    // cv::destroyAllWindows();
 
     return true;
 }

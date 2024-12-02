@@ -65,6 +65,12 @@ bool DatasetLoader_ScanNet::Retrieve() {
     state &= GetRGB();
     if(!state) return false;
     frame_index+=m_dataset->frame_index_counter;
+
+    // cv::imshow("m_rgb", m_rgb);
+    // cv::imshow("m_d", m_d);
+    // cv::waitKey(0);
+    // cv::destroyAllWindows();
+
     return true;
 }
 
