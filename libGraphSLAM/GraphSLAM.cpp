@@ -197,9 +197,11 @@ std::vector<std::shared_ptr<inseg_lib::Surfel>> GraphSLAM::FilterSegment(
     return filtered;
 }
 
-void GraphSLAM::SaveSurfelsToPLY(int segment_filter, const std::string &output_name, const std::string &output_folder, bool binary) {
-    auto filtered_surfels = FilterSegment(segment_filter,inseg_->map().surfels);
+// void GraphSLAM::SaveSurfelsToPLY(int segment_filter, const std::string &output_name, const std::string &output_folder, bool binary) {
+void GraphSLAM::SaveSurfelsToPLY(const std::string &output_folder, const std::string &output_name, int segment_filter, bool binary) {
+    auto filtered_surfels = FilterSegment(segment_filter, inseg_->map().surfels);
     SaveSurfelsToPLY(output_folder, output_name, filtered_surfels, binary);
+    // SaveSurfelsToPLY(filtered_surfels, output_folder, output_name, binary);
 }
 
 template<typename T, typename T2>

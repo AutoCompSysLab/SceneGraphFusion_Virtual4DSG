@@ -307,7 +307,8 @@ void GraphSLAMGUI::MainUI(){
     }
     static bool save_binary_ply = true;
     if(ImGui::Button("Output surfels to ply")) {
-        mpGraphSLAM->SaveSurfelsToPLY(mNodeFilterSize,pth_out, "inseg.ply",save_binary_ply);
+        // mpGraphSLAM->SaveSurfelsToPLY(mNodeFilterSize,pth_out, "inseg.ply",save_binary_ply);
+        mpGraphSLAM->SaveSurfelsToPLY(pth_out, "inseg.ply", mNodeFilterSize, save_binary_ply);
         printf("ply saved at %s\n",pth_out.c_str());
     }
     ImGui::SameLine();
@@ -426,14 +427,18 @@ void GraphSLAMGUI::Process(){
 
     {
         // bool scannet = false;
-        bool virtual4dsg = true;
         const int size = 3;
-        // const float sub_window_height = (windowHeight-(0*size+2)) / size;
-        const float sub_window_height = (windowHeight-(0*size+10)) / size;
+        const float sub_window_height = (windowHeight-(0*size+2)) / size;
         // const float sub_window_width = scannet ?
-        const float sub_window_width = virtual4dsg ?
-                                       sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().cols)/static_cast<float>(mpDataLoader->GetDepthImage().rows)) :
-                                       sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().rows)/static_cast<float>(mpDataLoader->GetDepthImage().cols));
+        //                                sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().cols)/static_cast<float>(mpDataLoader->GetDepthImage().rows)) :
+        //                                sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().rows)/static_cast<float>(mpDataLoader->GetDepthImage().cols));
+        float sub_window_width;
+        if (dynamic_cast<DatasetLoader_3RScan*>(mpDataLoader)) {
+            sub_window_width = sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().rows) / static_cast<float>(mpDataLoader->GetDepthImage().cols));
+        } else {
+            sub_window_width = sub_window_height*(static_cast<float>(mpDataLoader->GetDepthImage().cols) / static_cast<float>(mpDataLoader->GetDepthImage().rows));
+        }
+
         int i=0;
         for(auto &drawer: mImageDrawer){
             glViewport(windowWidth - sub_window_width,
@@ -481,27 +486,27 @@ bool GraphSLAMGUI::ProcessSLAM(){
     mRGB = mpDataLoader->GetRGBImage();
     mDepth = mpDataLoader->GetDepthImage(); // mm
 
-#ifdef COMPILE_WITH_ASSIMP
-    if(mMeshRender) {
-        Eigen::Matrix4f t_p = mpDataLoader->GetPose(); // camera2world
-        t_p.topRightCorner<3, 1>() /= 1000.f; // mm ->m
-        t_p.transposeInPlace(); // row-major -> column major
-        auto view_pose = glUtil::GetViewMatrix(t_p); // View matrix: world2camera matrix for opengl camera
-        auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
-                                               mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
-                                               mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
-                                               glCam->projection_control_->near,glCam->projection_control_->far);
-        // if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader)) {
-        //     Eigen::Matrix4f convertLHtoRH = Eigen::Matrix4f::Identity();
-        //     convertLHtoRH(2, 2) = -1; 
-        //     proj = convertLHtoRH * proj; // projection matrix도 z축 반전
-        // }
-        cv::Mat t_rgb;
-        mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far); // 
-        mDepth = mMeshRender->GetDepth(); //
-        // std::cout << "Mesh Renderer pose for frame " << idx << ": \n" << t_p << std::endl;
-    }
-#endif
+// #ifdef COMPILE_WITH_ASSIMP
+//     if(mMeshRender) {
+//         Eigen::Matrix4f t_p = mpDataLoader->GetPose(); // camera2world
+//         t_p.topRightCorner<3, 1>() /= 1000.f; // mm ->m
+//         t_p.transposeInPlace(); // row-major -> column major
+//         auto view_pose = glUtil::GetViewMatrix(t_p); // View matrix: world2camera matrix for opengl camera
+//         auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
+//                                                mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
+//                                                mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
+//                                                glCam->projection_control_->near,glCam->projection_control_->far);
+//         // if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader)) {
+//         //     Eigen::Matrix4f convertLHtoRH = Eigen::Matrix4f::Identity();
+//         //     convertLHtoRH(2, 2) = -1; 
+//         //     proj = convertLHtoRH * proj; // projection matrix도 z축 반전
+//         // }
+//         cv::Mat t_rgb;
+//         mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far); // 
+//         mDepth = mMeshRender->GetDepth(); //
+//         // std::cout << "Mesh Renderer pose for frame " << idx << ": \n" << t_p << std::endl;
+//     }
+// #endif
 
     const Eigen::Matrix4f pose_inv = pose.inverse(); //  camera2world -> world2camera
     fps_->start();
@@ -1198,13 +1203,15 @@ void GraphSLAMGUI::SetRender(int width, int height, const std::string &path, boo
 void GraphSLAMGUI::RecordImg() {
     glfwGetFramebufferSize(window_->window, &window_->runtimeWidth, &window_->runtimeHeight);
     cv::Mat img(window_->runtimeHeight, window_->runtimeWidth, CV_8UC4);
-    glReadBuffer( GL_FRONT );
+    // glReadBuffer(GL_FRONT);
+    glReadBuffer(GL_BACK);
     glReadPixels(0, 0, window_->runtimeWidth, window_->runtimeHeight, GL_RGBA, GL_UNSIGNED_BYTE,
                  img.data);
     cv::flip(img, img, 0);
     cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
     static int iterSave=0;
-    static const std::string pth_to_image_folder = "./imgs";
+    // static const std::string pth_to_image_folder = "./imgs";
+    static const std::string pth_to_image_folder = "./bin/imgs";
     char name[pth_to_image_folder.length() + 100];
     sprintf(name, (pth_to_image_folder + "/color%04d.png").c_str(), iterSave);
     tools::PathTool::create_folder(pth_to_image_folder);

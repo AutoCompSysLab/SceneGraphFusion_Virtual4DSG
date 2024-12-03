@@ -59,7 +59,8 @@ namespace PSLAM {
 
         void SaveGraph(const std::string &output_folder, bool fullProb);
 
-        void SaveSurfelsToPLY(int segment_filter, const std::string &output_folder, const std::string &output_name, bool binary);
+        // void SaveSurfelsToPLY(int segment_filter, const std::string &output_folder, const std::string &output_name, bool binary);
+        void SaveSurfelsToPLY(const std::string &output_folder, const std::string &output_name, int segment_filter, bool binary);
 
         enum SAVECOLORMODE {
             SAVECOLORMODE_RGB, SAVECOLORMODE_SEGMENT, SAVECOLORMODE_INSTANCE, SAVECOLORMODE_SEMANTIC, SAVECOLORMODEL_PANOPTIC
