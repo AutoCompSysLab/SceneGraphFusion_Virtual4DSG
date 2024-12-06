@@ -11,24 +11,24 @@ namespace PSLAM {
     class Scan3RDataset : public DatasetDefinitionBase {
     public:
         Scan3RDataset(INPUTE_TYPE type, const std::string &path)  {
-            rotate_pose_img = true;
+            rotate_pose_img = true; // true: when using meshRender or .rendered.depth.png file
             datasetType = type;
             folder = path;
             frame_index_counter = 1;
             number_length = 1;
-            prefix_pose = "/frame-";
-            prefix_depth = "/frame-";
-            prefix_rgb = "/frame-";
+            prefix_pose = "frame-";
+            prefix_depth = "frame-";
+            prefix_rgb = "frame-";
 
             suffix_depth = ".depth.pgm";
             suffix_rgb = ".color.jpg";
             suffix_pose = ".pose.txt";
             if (rotate_pose_img) {
-//                suffix_depth = ".rendered.depth.png";
-//                suffix_pose = ".align.pose.txt";
-                suffix_depth = ".depth.pgm";
+                suffix_depth = ".rendered.depth.png";
+                // suffix_pose = ".align.pose.txt";
+                // suffix_depth = ".depth.pgm";
                 suffix_pose = ".pose.txt";
-//                suffix_pose = use_aligned_pose? ".align.pose.txt" : ".pose.txt";
+                // suffix_pose = use_aligned_pose? ".align.pose.txt" : ".pose.txt";
             }
 
             min_pyr_level = 3;

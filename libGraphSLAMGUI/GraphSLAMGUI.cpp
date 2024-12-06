@@ -1,5 +1,6 @@
 //
 // Created by sc on 8/21/20.
+// Modified by jw on 12/04/24.
 //
 
 #include "GraphSLAMGUI.h"
@@ -16,8 +17,7 @@ GraphSLAMGUI::GraphSLAMGUI(GraphSLAM *graphSlam, DatasetLoader_base *dataloader)
 
 {
     glCam = std::make_unique<glUtil::Camera>(window_->width, window_->height, camPose, camUp, yaw, pitch);
-    // glCam->camera_control_ = std::make_unique<SC::ArcCameraContorl>();
-    glCam->camera_control_ = std::make_unique<SC::ArcCameraContorl>(camPose, camUp, yaw, pitch);
+    glCam->camera_control_ = std::make_unique<SC::ArcCameraContorl>();
     reinterpret_cast<SC::ArcCameraContorl*>(glCam->camera_control_.get())->SetDistance(5.0);
 
     registerKeyFunciton(window_, GLFW_KEY_ESCAPE,
@@ -385,7 +385,14 @@ void GraphSLAMGUI::Process(){
     }
 
     const Eigen::Matrix4f eigen_proj = GLM2E<float,4,4>(glCam->projection_control_->projection_matrix());
-    const Eigen::Matrix4f eigen_vm   = GLM2E<float,4,4>(glCam->camera_control_->GetViewMatrix());    
+    const Eigen::Matrix4f eigen_vm   = GLM2E<float,4,4>(glCam->camera_control_->GetViewMatrix()); 
+    // Eigen::Matrix4f eigen_proj = GLM2E<float,4,4>(glCam->projection_control_->projection_matrix());
+    // Eigen::Matrix4f ConvertLHToRH;
+    // ConvertLHToRH << 1,  0,  0,  0, // Y-up 일 때
+    //                  0, -1,  0,  0,
+    //                  0,  0,  1,  0,
+    //                  0,  0,  0,  1;
+    // eigen_proj = ConvertLHToRH * eigen_proj * ConvertLHToRH.inverse();
 
 #ifdef APPLE
     windowWidth *=2;
@@ -400,6 +407,8 @@ void GraphSLAMGUI::Process(){
         cv::flip(rgb, rgb, 0);
         if (dynamic_cast<DatasetLoader_3RScan*>(mpDataLoader))
             cv::rotate(rgb, rgb, cv::ROTATE_90_COUNTERCLOCKWISE);
+        else if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader))
+            cv::flip(rgb, rgb, 1);
         mImageDrawer[0].Update(rgb.ptr(), rgb.cols, rgb.rows);
 
         cv::Mat greyImage;
@@ -407,6 +416,8 @@ void GraphSLAMGUI::Process(){
         cv::flip(greyImage, greyImage, 0);
         if (dynamic_cast<DatasetLoader_3RScan*>(mpDataLoader))
             cv::rotate(greyImage, greyImage, cv::ROTATE_90_COUNTERCLOCKWISE);
+        else if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader))
+            cv::flip(greyImage, greyImage, 1);
         double min;
         double max;
         cv::minMaxIdx(greyImage, &min, &max);
@@ -415,11 +426,12 @@ void GraphSLAMGUI::Process(){
         mImageDrawer[1].Update(adjMap.ptr(),
                                adjMap.cols,
                                adjMap.rows);
-
         cv::Mat flipLabel;
         cv::flip(mpGraphSLAM->GetInSeg()->GetSegmentedLabelMap(),flipLabel, 0);
         if (dynamic_cast<DatasetLoader_3RScan*>(mpDataLoader))
             cv::rotate(flipLabel, flipLabel, cv::ROTATE_90_COUNTERCLOCKWISE);
+        else if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader))
+            cv::flip(flipLabel, flipLabel, 1);
         mImageDrawer[2].Update(flipLabel.ptr(),
                                flipLabel.cols,
                                flipLabel.rows);
@@ -486,27 +498,24 @@ bool GraphSLAMGUI::ProcessSLAM(){
     mRGB = mpDataLoader->GetRGBImage();
     mDepth = mpDataLoader->GetDepthImage(); // mm
 
-// #ifdef COMPILE_WITH_ASSIMP
-//     if(mMeshRender) {
-//         Eigen::Matrix4f t_p = mpDataLoader->GetPose(); // camera2world
-//         t_p.topRightCorner<3, 1>() /= 1000.f; // mm ->m
-//         t_p.transposeInPlace(); // row-major -> column major
-//         auto view_pose = glUtil::GetViewMatrix(t_p); // View matrix: world2camera matrix for opengl camera
-//         auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
-//                                                mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
-//                                                mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
-//                                                glCam->projection_control_->near,glCam->projection_control_->far);
-//         // if (dynamic_cast<DatasetLoader_Virtual4DSG*>(mpDataLoader)) {
-//         //     Eigen::Matrix4f convertLHtoRH = Eigen::Matrix4f::Identity();
-//         //     convertLHtoRH(2, 2) = -1; 
-//         //     proj = convertLHtoRH * proj; // projection matrix도 z축 반전
-//         // }
-//         cv::Mat t_rgb;
-//         mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far); // 
-//         mDepth = mMeshRender->GetDepth(); //
-//         // std::cout << "Mesh Renderer pose for frame " << idx << ": \n" << t_p << std::endl;
-//     }
-// #endif
+#ifdef COMPILE_WITH_ASSIMP
+    if(mMeshRender) {
+        Eigen::Matrix4f t_p = mpDataLoader->GetPose(); // camera2world
+        t_p.topRightCorner<3, 1>() /= 1000.f; // mm ->m
+        t_p.transposeInPlace(); // row-major -> column major
+        auto view_pose = glUtil::GetViewMatrix(t_p); // View matrix: world2camera matrix for opengl camera
+        auto proj = glUtil::Perspective<float>(mpDataLoader->GetCamParamDepth().fx,mpDataLoader->GetCamParamDepth().fy,
+                                               mpDataLoader->GetCamParamDepth().cx,mpDataLoader->GetCamParamDepth().cy,
+                                               mpDataLoader->GetCamParamDepth().width,mpDataLoader->GetCamParamDepth().height,
+                                               glCam->projection_control_->near,glCam->projection_control_->far);
+                                            //    0.3f,100.0f); // Virtual4DSG camera
+        cv::Mat t_rgb;
+        mMeshRender->Render(proj,view_pose,glCam->projection_control_->near,glCam->projection_control_->far); 
+        // mMeshRender->Render(proj, view_pose, 0.3f, 100.0f); // Virtual4DSG camera
+        mDepth = mMeshRender->GetDepth(); 
+        // std::cout << "Mesh Renderer pose for frame " << idx << ": \n" << t_p << std::endl;
+    }
+#endif
 
     const Eigen::Matrix4f pose_inv = pose.inverse(); //  camera2world -> world2camera
     fps_->start();

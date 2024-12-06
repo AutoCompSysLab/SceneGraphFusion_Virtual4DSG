@@ -83,7 +83,7 @@ namespace glUtil {
     }
 
     template<typename T, int m, int n>
-    static  inline Eigen::Matrix<T, m, n> GLM2E(const glm::mat<m, n, float, glm::precision::highp> &mat) {
+    static inline Eigen::Matrix<T, m, n> GLM2E(const glm::mat<m, n, float, glm::precision::highp> &mat) {
         Eigen::Matrix<T, m, n> em;
         for (int i = 0; i < m; ++i)
         {

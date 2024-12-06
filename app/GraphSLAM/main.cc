@@ -208,7 +208,7 @@ int main(int argc, char** argv) {
     if(params.use_render) 
         gui.SetRender(dataset_loader_->GetCamParamDepth().width,dataset_loader_->GetCamParamDepth().height,path, false); // align: true->false for Virtual4DSG
         // gui.SetRender(dataset_loader_->GetCamParamDepth().width,dataset_loader_->GetCamParamDepth().height,path, true);
-    gui.run(params.use_render);
+    gui.run();
 #else
     SCLOG(INFO) << "start processing frames...";
     while (true) {

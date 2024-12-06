@@ -33,5 +33,4 @@ namespace PSLAM {
 }
 
 
-
 #endif //LIBSURFELRECONSTRUCTION_UTIL_H

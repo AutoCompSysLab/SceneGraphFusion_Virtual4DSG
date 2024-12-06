@@ -18,7 +18,6 @@ namespace PSLAM {
         // TODO change to true if V2
         bool rotate_pose_img = false;
         bool convert_coordinate = false;
-        bool row_major_pose = false;
         int frame_index_counter = 1;
         int number_length = 0;
         int number_pose = 0;

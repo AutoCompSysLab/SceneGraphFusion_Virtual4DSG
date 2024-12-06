@@ -232,6 +232,10 @@ namespace glUtil{
                 for(auto &vertex : mesh->vertices){
                     auto point = Eigen::Map<Eigen::Vector3f>(glm::value_ptr(vertex.Position));
                     point = transform.topLeftCorner<3,3>() * point + transform.topRightCorner<3,1>();
+                    // added
+                    // auto normal = Eigen::Map<Eigen::Vector3f>(glm::value_ptr(vertex.Normal));
+                    // normal = transform.topLeftCorner<3,3>() * normal;
+                    // normal.normalize();  // 정규화 필요
                 }
                 mesh->UpdateMesh();
             }

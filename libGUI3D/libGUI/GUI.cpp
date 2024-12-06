@@ -120,7 +120,7 @@ void GUI_base::initWindow(const std::string& name, int width, int height, bool v
 
 
 
-void GUI_base::run(bool use_render) {
+void GUI_base::run() {
     while(!glfwWindowShouldClose(window_->window)) {
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();

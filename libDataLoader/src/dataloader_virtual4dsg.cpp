@@ -26,16 +26,18 @@ static const std::vector<std::string> split(const std::string s, const std::stri
 }
 
 static bool LoadInfoIntrinsics(const std::string& filename,
-                                  const bool depth_intrinsics,
-                        CameraParameters& intrinsics) {
+                               const bool depth_intrinsics,
+                               CameraParameters& intrinsics) {
     const std::string search_tag = depth_intrinsics ? "m_calibrationDepthIntrinsic" : "m_calibrationColorIntrinsic";
     const std::string search_tag_w = depth_intrinsics? "m_depthWidth":"m_colorWidth";
     const std::string search_tag_h = depth_intrinsics? "m_depthHeight":"m_colorHeight";
+    const std::string search_tag_p = "m_projectionMatrix";
     std::string line{""};
     std::ifstream file(filename);
     int width,height;
     // float fx,fy,cx,cy;
     double fx,fy,cx,cy;
+    Eigen::Matrix4f proj = Eigen::Matrix4f::Zero();
     if (file.is_open()) {
         while (std::getline(file,line)) {
             if (line.rfind(search_tag_w, 0) == 0)
@@ -56,9 +58,28 @@ static bool LoadInfoIntrinsics(const std::string& filename,
                 cx = std::stod(parts[2]);
                 cy = std::stod(parts[6]);
             }
+            else if (line.rfind(search_tag_p, 0) == 0) {
+                const std::string model = line.substr(line.find("= ")+2, std::string::npos);
+                const auto parts = split(model, " ");
+                // proj(0, 0) = std::stod(parts[0]);
+                // proj(2, 0) = std::stod(parts[2]);   // column-major
+                // proj(1, 1) = std::stod(parts[5]);
+                // proj(2, 1) = std::stod(parts[6]);
+                // proj(2, 2) = std::stod(parts[10]); // ConvertLHtoRH
+                // proj(3, 2) = std::stod(parts[11]);
+                // proj(2, 3) = std::stod(parts[14]);
+                proj(0, 0) = std::stod(parts[0]);
+                proj(0, 2) = std::stod(parts[2]);   // column-major
+                proj(1, 1) = std::stod(parts[5]);
+                proj(1, 2) = std::stod(parts[6]);
+                proj(2, 2) = std::stod(parts[10]); // ConvertLHtoRH
+                proj(2, 3) = std::stod(parts[11]);
+                proj(3, 2) = std::stod(parts[14]);
+            }
         }
         file.close();
-        intrinsics.Set(width,height,fx,fy,cx,cy,1.f);
+        // intrinsics.Set(width,height,fx,fy,cx,cy,1.f);
+        intrinsics.Set(width,height,fx,fy,cx,cy,proj,1.f);
         return true;
     }
 
@@ -153,7 +174,7 @@ bool DatasetLoader_Virtual4DSG::Retrieve() {
         m_rgb = cv::imread(colorFilename, -1);
     }
 
-    LoadPose(m_pose, pose_file_name_,m_dataset->rotate_pose_img);
+    LoadPose(m_pose, pose_file_name_, m_dataset->rotate_pose_img);
     frame_index += m_dataset->frame_index_counter; 
        
     if (m_dataset->rotate_pose_img) {
@@ -174,11 +195,14 @@ bool DatasetLoader_Virtual4DSG::Retrieve() {
         //                  0,  0,  1,  0,
         //                  0,  1,  0,  0,
         //                  0,  0,  0,  1;
-        ConvertLHToRH << 1,  0,  0,  0, // Y-up 일 때
+        ConvertLHToRH << -1,  0,  0,  0, // Y-up 일 때
                          0,  1,  0,  0,
                          0,  0, -1,  0,
                          0,  0,  0,  1;
         m_pose = ConvertLHToRH * m_pose * ConvertLHToRH.inverse(); // 행렬의 기하학적 성질을 올바르게 적용하기 위해 앞뒤로 곱함.
+        cv::flip(m_rgb, m_rgb, 1); // x축 반전된 pose와 맞추기 위해 좌우반전
+        cv::flip(m_d, m_d, 1); 
+
     }
     // std::cout << "Converted pose\n"<< m_pose << "\n";
 

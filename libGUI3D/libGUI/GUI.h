@@ -54,7 +54,7 @@ namespace SC{
 
         void initWindow(const std::string &name, int width, int height, bool visible=true);
 
-        virtual void run(bool use_render);
+        virtual void run();
 
         /// Draw ImGUI related
         virtual void drawUI();

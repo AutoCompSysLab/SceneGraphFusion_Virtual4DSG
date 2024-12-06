@@ -14,7 +14,6 @@ namespace PSLAM {
             datasetType = type;
             rotate_pose_img = false;
             convert_coordinate = true;  // necessary
-            row_major_pose = true;
             folder = path;
             frame_index_counter = 1;
             number_length = 1;
