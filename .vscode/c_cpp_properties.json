@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/include/**"
+            ],
+            "defines": [
+                "COMPILE_WITH_ASSIMP",
+                "COMPILE_WITH_GRAPHPRED",
+                "COMPILE_WITH_PSLAM_GUI",
+                "COMPILE_WITH_ONNX",
+                "COMPILE_WITH_JSON",
+                "COMPILE_WITH_EIGEN",
+                "COMPILE_WITH_FREETYPE",
+                "COMPILE_WITH_OPENCV",
+                "IMGUI_IMPL_OPENGL_LOADER_GL3W"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+            // "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

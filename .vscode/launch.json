@@ -1,0 +1,86 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Virtual4DSG",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/exe_GraphSLAM_GUI", 
+            "args": [
+                "--pth_in", "./data/Virtual4DSG/4acaebcc-6c10-2a2a-858b-29c7e4fb410d/sequence",
+                "--pth_model", "./CVPR21_traced/traced",
+                "--pth_out", "./bin",
+                "--rendered", "0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "internalConsoleOptions": "openOnSessionStart"            
+        },
+        {
+            "name": "(gdb) 3RScan",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/exe_GraphSLAM_GUI", 
+            "args": [
+                "--pth_in", "./data/3RScan/4acaebcc-6c10-2a2a-858b-29c7e4fb410d/sequence",
+                "--pth_model", "./CVPR21_traced/traced",
+                "--pth_out", "./bin",
+                "--rendered", "1"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "internalConsoleOptions": "openOnSessionStart"            
+        },
+        {
+            "name": "(gdb) ScanNet",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/exe_GraphSLAM_GUI", 
+            "args": [
+                "--pth_in", "./data/ScanNet/scene0000_00/scene0000_00.sens",
+                "--pth_model", "./CVPR21_traced/traced",
+                "--pth_out", "./bin",
+                "--rendered", "1"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "internalConsoleOptions": "openOnSessionStart"            
+        }
+    ]
+}
